@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devops-demo-canary
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: devops-demo-canary
+  template:
+    metadata:
+      labels:
+        app: devops-demo-canary
+    spec:
+      containers:
+        - name: devops-demo
+          image: ghcr.io/YOUR_USERNAME/devops-deployment-toolkit:canary
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
