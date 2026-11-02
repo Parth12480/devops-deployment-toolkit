@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devops-demo-green
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: devops-demo
+      track: green
+  template:
+    metadata:
+      labels:
+        app: devops-demo
+        track: green
+    spec:
+      containers:
+        - name: devops-demo
+          image: ghcr.io/YOUR_USERNAME/devops-deployment-toolkit:green
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
