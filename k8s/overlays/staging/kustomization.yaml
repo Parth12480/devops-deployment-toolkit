@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: devops-demo
+resources:
+  - ../../base
+replicas:
+  - name: devops-demo
+    count: 1
+commonLabels:
+  environment: staging
