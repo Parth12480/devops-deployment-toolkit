@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: devops-demo-staging
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Parth12480/devops-deployment-toolkit.git
+    targetRevision: main
+    path: k8s/overlays/staging
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: devops-demo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
