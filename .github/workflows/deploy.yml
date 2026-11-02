@@ -1,0 +1,39 @@
+name: Deploy to Kubernetes (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: Full immutable image reference, including sha256 digest
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure kubectl
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        run: |
+          test -n "$KUBE_CONFIG" || (echo "KUBE_CONFIG secret is missing" && exit 1)
+          mkdir -p "$HOME/.kube"
+          printf '%s' "$KUBE_CONFIG" | base64 --decode > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
+      - name: Apply staging configuration
+        run: kubectl apply -k k8s/overlays/staging
+      - name: Update image and wait for rollout
+        env:
+          IMAGE: ${{ inputs.image }}
+        run: |
+          case "$IMAGE" in
+            *@sha256:*) ;;
+            *) echo "Use an immutable digest reference (image@sha256:...)." >&2; exit 1 ;;
+          esac
+          kubectl set image deployment/devops-demo devops-demo="$IMAGE" -n devops-demo
+          kubectl rollout status deployment/devops-demo -n devops-demo --timeout=180s
